@@ -1,0 +1,16 @@
+#!/usr/bin/gem build
+# encoding: utf-8
+
+Gem::Specification.new do |s|
+  s.name    = "GrooveShark"
+  s.version = "0.0.1"
+  s.summary = "GrooveShark library"
+
+  s.author  = "Mikkel Kroman"
+  s.email   = "mk@maero.dk"
+
+  s.bindir = "executables"
+  s.has_rdoc = false
+  s.require_path = "library"
+  s.required_ruby_version = ">= 1.9.1"
+end
