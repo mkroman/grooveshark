@@ -2,7 +2,6 @@
 
 module GrooveShark
   class Client
-    COWBELL = 'cowbell.grooveshark.com'
 
     def initialize
       # …
