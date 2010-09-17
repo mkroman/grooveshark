@@ -1,7 +1,13 @@
 # encoding: utf-8
 
+require 'json'
+require 'net/http'
+require 'digest/sha1'
+
 module GrooveShark
   class Connection
+    attr_accessor :session
+
     GROOVE_PORT   = 443
     GROOVE_SERVER = "cowbell.grooveshark.com"
 
@@ -12,7 +18,7 @@ module GrooveShark
     def initialize session = nil
       @http = Net::HTTP.new GROOVE_SERVER, GROOVE_PORT
       @http.use_ssl = true
-      @session = session
+      @session = session || new_session
     end
 
     def transmit method, parameters = {}, more = false
@@ -32,7 +38,7 @@ module GrooveShark
     def build method, parameters
       {
         header: {
-          session: @session,
+           session: @session,
            uuid: UUID,
            client: CLIENT,
            clientRevision: CLIENT_REV,
@@ -41,6 +47,18 @@ module GrooveShark
         method: method,
         parameters: parameters
       }.to_json
+    end
+
+
+    def token method
+      token = rand(256 ** 3).to_s(16).rjust 6, '0'
+      plain = [method, @token, 'quitStealinMahShit', token].join ?:
+      "#{token}#{Digest::SHA1.hexdigest plain}"
+    end
+
+    def new_session
+      response = Net::HTTP.get URI.parse("http://listen.grooveshark.com/")
+      response =~ /sessionID: '([0-9a-f]+)'/ ? $1 : nil
     end
   end
 end

@@ -11,7 +11,7 @@ module GrooveShark
       yield Song.new({
         'Name' => 'Den lukrative rendesten',
         'ArtistName' => 'L.O.C.'
-      })if block_given?
+      }) if block_given?
     end
   end
 end
