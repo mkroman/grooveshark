@@ -4,14 +4,17 @@ module GrooveShark
   class Client
 
     def initialize
-      # …
+      @connection = Connection.new
     end
 
     def search query
-      yield Song.new({
-        'Name' => 'Den lukrative rendesten',
-        'ArtistName' => 'L.O.C.'
-      }) if block_given?
+      songs = @connection.transmit :getSearchResults, {
+        type: :Songs,
+        query: query
+      }, true
+
+      songs.map! &Song.method(:new)
+      songs.each{|s| yield s} if block_given?
     end
   end
 end

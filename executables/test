@@ -6,4 +6,4 @@ require 'grooveshark'
 require 'pp'
 
 c = GrooveShark::Connection.new
-puts c.session
+p c.transmit 'getSearchResults', type: 'Songs', query: 'suspekt'}, true
