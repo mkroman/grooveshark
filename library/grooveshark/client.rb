@@ -13,9 +13,10 @@ module GrooveShark
         query: query
       }, true
 
-      songs.map do |song|
-        yield Song.new song, @connection
-      end
+      songs.map! { |song| Song.new song, @connection }
+      songs.each { |song| yield song } if block_given?
+
+      songs
     end
   end
 end

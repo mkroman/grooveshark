@@ -2,6 +2,7 @@
 
 require 'json'
 require 'net/http'
+require 'net/https'
 require 'digest/md5'
 require 'digest/sha1'
 
