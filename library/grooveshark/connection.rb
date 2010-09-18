@@ -31,6 +31,11 @@ module GrooveShark
       res = @http.request req, build(method, parameters)
       result = JSON.parse res.body
 
+      if result['fault'] and result['fault']['code'] == 256
+        @token = new_token
+        return transmit method, parameters, more
+      end
+
       result['result'] or result['fault']
     end
 
