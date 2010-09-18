@@ -13,8 +13,9 @@ module GrooveShark
         query: query
       }, true
 
-      songs.map! &Song.method(:new)
-      songs.each{|s| yield s} if block_given?
+      songs.map do |song|
+        yield Song.new song, @connection
+      end
     end
   end
 end
