@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-module GrooveShark
+module Grooveshark
   class Client
 
     def initialize

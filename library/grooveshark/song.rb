@@ -1,7 +1,9 @@
 # encoding: utf-8
 
-module GrooveShark
+module Grooveshark
   class Song
+    class InvalidStream < StandardError; end
+
     def self.attr_data name, field
       define_method name do; @data[field] end
     end
@@ -11,30 +13,41 @@ module GrooveShark
     attr_data :album,  'AlbumName'
     attr_data :artist, 'ArtistName'
 
-    def initialize data = {}, delegate = nil
-      @delegate = delegate
+    def initialize data = {}, connection = nil
+      @connection = connection
       @data = data
     end
 
-    def token
-      unless @token
-        stream = @delegate.transmit :getTokenForSong, {
-          songID: id,
-          country: {"CC1"=>"0","CC3"=>"0","ID"=>"223","CC2"=>"0","CC4"=>"1073741824"}
-        }, true
-
-        @token = stream['Token']
-      end
-
-      @token
-    end
+    def token; @token ||= get_token end
+    def stream; @stream ||= Stream.new get_stream, self end
 
     def url
       name = self.name.gsub(/[^\s\w]/, '').gsub ' ', '+'
       %{http://listen.grooveshark.com/#/s/#{name}/#{token}}
     end
 
-    alias_method :link, :url
+  private
 
+    def get_token
+      result = @connection.transmit :getTokenForSong, {
+        songID: id,
+        country: Grooveshark::Country
+      }, true
+
+      result['Token']
+    end
+
+    def get_stream
+      result = @connection.transmit :getStreamKeyFromSongIDEx, {
+        prefetch: false,
+        country: Grooveshark::Country,
+        mobile: false,
+        songID: id,
+      }, true
+
+      raise InvalidStream if result.empty?
+
+      { key: result['streamKey'], ip: result['ip'] }
+    end
   end
 end

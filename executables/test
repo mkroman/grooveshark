@@ -5,5 +5,13 @@ $:.unshift File.dirname(__FILE__) + '/../library'
 require 'grooveshark'
 require 'pp'
 
-c = GrooveShark::Connection.new
-p c.transmit 'getSearchResults', type: 'Songs', query: 'suspekt'}, true
+Grooveshark.search "ohoi" do |song|
+  total, complete = song.stream.size, 0
+
+  song.stream.each_chunk do |chunk|
+    total = song.stream.size
+    complete += chunk.size
+
+    puts "%d%% complete" % [(complete * 100) / total]
+  end
+end

@@ -6,19 +6,19 @@ require 'net/https'
 require 'digest/md5'
 require 'digest/sha1'
 
-module GrooveShark
+module Grooveshark
   class Connection
     attr_accessor :token, :session
 
-    GROOVE_PORT   = 443
-    GROOVE_SERVER = "cowbell.grooveshark.com"
+    DefaultPort = 443
+    DefaultHost = "cowbell.grooveshark.com"
 
-    UUID = "996A915E-4C56-6BE2-C59F-96865F748EAE"
-    CLIENT = "gslite"
-    CLIENT_REV = "20100831.17"
+    UUID = '996A915E-4C56-6BE2-C59F-96865F748EAE'
+    ClientName = 'gslite'
+    ClientRevision = '20100831.17'
 
     def initialize
-      @http = Net::HTTP.new GROOVE_SERVER, GROOVE_PORT
+      @http = Net::HTTP.new DefaultHost, DefaultPort
       @http.use_ssl = true
 
       # Session data
@@ -52,9 +52,9 @@ module GrooveShark
         header: {
            session: @session,
            uuid: UUID,
-           client: CLIENT,
-           clientRevision: CLIENT_REV,
-           country: {"CC1"=>"0","CC3"=>"0","ID"=>"223","CC2"=>"0","CC4"=>"1073741824"}
+           client: ClientName,
+           clientRevision: ClientRevision,
+           country: Grooveshark::Country
         },
         method: "#{method}",
         parameters: parameters
@@ -77,7 +77,7 @@ module GrooveShark
     end
 
     def new_token
-      transmit 'getCommunicationToken', secretKey: Digest::MD5.hexdigest(@session)
+      transmit :getCommunicationToken, secretKey: Digest::MD5.hexdigest(@session)
     end
   end
 end
