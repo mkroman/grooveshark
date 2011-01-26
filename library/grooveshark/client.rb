@@ -2,7 +2,6 @@
 
 module Grooveshark
   class Client
-
     def initialize
       @connection = Connection.new
     end

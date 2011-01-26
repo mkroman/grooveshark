@@ -1,11 +1,5 @@
 # encoding: utf-8
 
-require 'json'
-require 'net/http'
-require 'net/https'
-require 'digest/md5'
-require 'digest/sha1'
-
 module Grooveshark
   class Connection
     attr_accessor :token, :session
@@ -13,26 +7,22 @@ module Grooveshark
     DefaultPort = 443
     DefaultHost = "cowbell.grooveshark.com"
 
-    UUID = '996A915E-4C56-6BE2-C59F-96865F748EAE'
-    ClientName = 'gslite'
-    ClientRevision = '20100831.17'
-
     def initialize
       @http = Net::HTTP.new DefaultHost, DefaultPort
       @http.use_ssl = true
 
-      # Session data
-      @session = new_session
-      @token   = new_token
+      @session = get_session
+      @token = get_token
     end
 
     def transmit method, parameters = {}, more = false
-      req = Net::HTTP::Post.new more ? '/more.php' : '/service.php', headers
-      res = @http.request req, build(method, parameters)
-      result = JSON.parse res.body
+       request = Net::HTTP::Post.new '/more.php', headers
+      response = @http.request request, build(method, parameters)
+        result = JSON.parse response.body
 
       if result['fault'] and result['fault']['code'] == 256
-        @token = new_token
+        @token = get_token
+
         return transmit method, parameters, more
       end
 
@@ -40,20 +30,21 @@ module Grooveshark
     end
 
   private
+
     def headers
       {
-        "Content-Type" => "application/json",
-        "Cookie" => "PHPSESSID=#{@session}"
+        "Cookie" => "PHPSESSID=#{@session}",
+        "Content-Type" => "application/json"
       }
     end
 
     def build method, parameters
       buffer = {
         header: {
+           uuid: Grooveshark::UUID,
            session: @session,
-           uuid: UUID,
-           client: ClientName,
-           clientRevision: ClientRevision,
+           client: Grooveshark::ClientName,
+           clientRevision: Grooveshark::ClientRevision,
            country: Grooveshark::Country
         },
         method: "#{method}",
@@ -71,12 +62,16 @@ module Grooveshark
       "#{token}#{Digest::SHA1.hexdigest plain}"
     end
 
-    def new_session
-      response = Net::HTTP.get URI.parse("http://listen.grooveshark.com/")
-      response =~ /sessionID: '([0-9a-f]+)'/ ? $1 : nil
+    def get_session
+      request  = Net::HTTP::Get.new '/'
+      response = Net::HTTP.start 'listen.grooveshark.com', 80 do |http|
+        http.request request
+      end
+
+      response['Set-Cookie'] =~ /PHPSESSID=(.*?);/ ? $1 : nil
     end
 
-    def new_token
+    def get_token
       transmit :getCommunicationToken, secretKey: Digest::MD5.hexdigest(@session)
     end
   end
